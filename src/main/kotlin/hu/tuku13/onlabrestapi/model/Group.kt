@@ -11,11 +11,11 @@ data class Group(
     val id: Long = 0L,
 
     @Column(name = "group_name")
-    val name: String = "",
+    var name: String = "",
 
-    val description: String = "",
+    var description: String = "",
 
-    val groupImageUrl: String = "",
+    var groupImageUrl: String = "",
 
     @Column(name = "created_by_user_id")
     val createdBy: Long = 0L
