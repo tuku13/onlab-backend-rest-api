@@ -16,7 +16,7 @@ class UserController {
 
     @GetMapping("/users")
     fun getUsers() : ResponseEntity<List<User>> {
-        var users = userRepository.findAll()
+        val users = userRepository.findAll()
         return ResponseEntity.ok(users)
     }
 
