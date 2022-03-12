@@ -10,14 +10,14 @@ data class Comment(
     @Column(name = "comment_id")
     val id: Long = 0L,
 
-    val timestamp: Long = 0L,
+    val timestamp: Long,
 
-    val text: String = "",
+    var text: String,
 
-    val parentCommentId: Long = 0L,
+    val parentCommentId: Long?,
 
-    val postId: Long = 0L,
+    val postId: Long,
 
     @Column(name = "posted_by_user_id")
-    val postedBy: Long = 0L
+    val postedBy: Long
 )

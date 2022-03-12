@@ -10,10 +10,14 @@ data class Post(
     @Column(name = "post_id")
     val id: Long = 0L,
 
-    val timestamp: Long = 0L,
+    var timestamp: Long = 0L,
 
-    val text: String = "",
+    var text: String,
+
+    val groupId: Long,
+
+    val userId: Long,
 
     @Column(name = "image")
-    val imageUrl: String = ""
+    var imageUrl: String = ""
 )
