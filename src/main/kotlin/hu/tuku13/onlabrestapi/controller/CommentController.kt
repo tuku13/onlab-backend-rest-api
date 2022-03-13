@@ -36,11 +36,11 @@ class CommentController {
     fun getComment(@PathVariable("comment-id") commentId: Long): ResponseEntity<Comment> {
         val comment = commentRepository.findById(commentId)
 
-        if(comment.isEmpty) {
-            return ResponseEntity(HttpStatus.NOT_FOUND)
+        return if(comment.isEmpty) {
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        } else {
+            ResponseEntity.ok(comment.get())
         }
-
-        return ResponseEntity.ok(comment.get())
     }
 
     @PostMapping("posts/{post-id}/comments/new")

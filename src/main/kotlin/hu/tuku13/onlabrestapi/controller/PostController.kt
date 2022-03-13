@@ -1,6 +1,7 @@
 package hu.tuku13.onlabrestapi.controller
 
 import hu.tuku13.onlabrestapi.dto.PostForm
+import hu.tuku13.onlabrestapi.dto.UserForm
 import hu.tuku13.onlabrestapi.model.Post
 import hu.tuku13.onlabrestapi.repository.GroupRepository
 import hu.tuku13.onlabrestapi.repository.PostRepository
@@ -85,16 +86,22 @@ class PostController {
     @DeleteMapping("posts/{post-id}/delete")
     fun deletePost(
         @PathVariable("post-id") postId: Long,
-        @RequestBody userId : Long
+        @RequestBody form : UserForm
         ): ResponseEntity<Unit> {
         val post = postRepository.getById(postId)
 
-        if(post.userId != userId) {
+        if(post.userId != form.userId) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
         postRepository.delete(post)
         return ResponseEntity(HttpStatus.OK)
+    }
+
+    @GetMapping("users/{user-id}/posts")
+    fun getUserPosts(@PathVariable("user-id") userId: Long) : ResponseEntity<List<Post>> {
+        val posts = postRepository.getPostsByUserId(userId)
+        return ResponseEntity.ok(posts)
     }
 
     //TODO upload picture -> picture url : String

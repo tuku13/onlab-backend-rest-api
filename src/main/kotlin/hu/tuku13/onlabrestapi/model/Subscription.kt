@@ -3,18 +3,14 @@ package hu.tuku13.onlabrestapi.model
 import javax.persistence.*
 
 @Entity
-@Table(name = "likes")
-data class Like(
+@Table(name = "subscriptions")
+data class Subscription(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "like_id")
+    @Column(name = "subscription_id")
     val id: Long = 0L,
-
-    var value: Int,
 
     val userId: Long,
 
-    val postId: Long? = null,
-
-    val commentId: Long? = null
+    val groupId: Long
 )

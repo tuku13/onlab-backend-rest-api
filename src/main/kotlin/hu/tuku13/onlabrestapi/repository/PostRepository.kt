@@ -9,4 +9,5 @@ interface PostRepository : JpaRepository<Post, Long> {
 
     fun countById(postId: Long) : Int
 
+    fun getPostsByUserId(userId: Long) : List<Post>
 }
