@@ -1,6 +1,7 @@
 package hu.tuku13.onlabrestapi.controller
 
 import hu.tuku13.onlabrestapi.dto.CommentForm
+import hu.tuku13.onlabrestapi.dto.UserForm
 import hu.tuku13.onlabrestapi.model.Comment
 import hu.tuku13.onlabrestapi.repository.CommentRepository
 import hu.tuku13.onlabrestapi.repository.PostRepository
@@ -25,21 +26,21 @@ class CommentController {
         return ResponseEntity.ok(comments)
     }
 
-    @GetMapping("/posts/{post-id}/comments/{parent-comment-id}")
-    fun getChildComments(
-        @PathVariable("post-id") postId: Long,
-        @PathVariable("parent-comment-id") parentCommentId: Long
-    ): ResponseEntity<List<Comment>> {
+    @GetMapping("/comments/{parent-comment-id}/children")
+    fun getChildComments(@PathVariable("parent-comment-id") parentCommentId: Long): ResponseEntity<List<Comment>> {
         val comments = commentRepository.getCommentByParentCommentId(parentCommentId)
-        return ResponseEntity.ok(
-            comments.filter { it.postId == postId }
-        )
+        return ResponseEntity.ok(comments)
     }
 
     @GetMapping("/comments/{comment-id}")
     fun getComment(@PathVariable("comment-id") commentId: Long): ResponseEntity<Comment> {
-        val comment = commentRepository.getById(commentId)
-        return ResponseEntity.ok(comment)
+        val comment = commentRepository.findById(commentId)
+
+        if(comment.isEmpty) {
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+
+        return ResponseEntity.ok(comment.get())
     }
 
     @PostMapping("posts/{post-id}/comments/new")
@@ -83,11 +84,11 @@ class CommentController {
     @DeleteMapping("comments/{comment-id}/delete")
     fun deleteComment(
         @PathVariable("comment-id") commentId: Long,
-        @RequestBody userId : Long
+        @RequestBody form: UserForm
     ) : ResponseEntity<Unit> {
         val comment = commentRepository.getById(commentId)
 
-        if(comment.postedBy != userId) {
+        if(comment.postedBy != form.userId) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
