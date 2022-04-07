@@ -26,3 +26,5 @@ class UserController {
         return ResponseEntity.ok(user.get())
     }
 }
+
+//TODO profile banner image

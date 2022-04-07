@@ -12,6 +12,8 @@ data class Post(
 
     var timestamp: Long = 0L,
 
+    var title: String,
+
     var text: String,
 
     val groupId: Long,

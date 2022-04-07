@@ -1,0 +1,19 @@
+#auth0:
+#  audience: { Domain }
+#spring:
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: https://{API Identifier}/
+
+# az also a "jo"
+
+#auth0:
+#  audience: dev-4orc0omt.us.auth0.com
+#spring:
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: http://localhost:8081

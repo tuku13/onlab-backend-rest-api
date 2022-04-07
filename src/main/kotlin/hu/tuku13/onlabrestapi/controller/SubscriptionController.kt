@@ -27,7 +27,7 @@ class SubscriptionController {
     ): ResponseEntity<Unit> {
         val subscription = subscriptionRepository.findSubscriptionByUserIdAndGroupId(form.userId, groupId)
 
-        if (subscription.isEmpty) {
+        if (!subscription.isPresent) {
             subscriptionRepository.save(
                 Subscription(
                     groupId = groupId,

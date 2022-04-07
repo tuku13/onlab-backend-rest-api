@@ -5,9 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface PostRepository : JpaRepository<Post, Long> {
 
-    fun getPostByGroupId(groupId: Long) : List<Post>
+    fun getPostsByGroupId(groupId: Long): List<Post>
 
-    fun countById(postId: Long) : Int
+    fun countById(postId: Long): Int
 
-    fun getPostsByUserId(userId: Long) : List<Post>
+    fun getPostsByUserId(userId: Long): List<Post>
+
 }

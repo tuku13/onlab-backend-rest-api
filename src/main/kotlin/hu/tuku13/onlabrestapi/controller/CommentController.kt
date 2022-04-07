@@ -36,14 +36,14 @@ class CommentController {
     fun getComment(@PathVariable("comment-id") commentId: Long): ResponseEntity<Comment> {
         val comment = commentRepository.findById(commentId)
 
-        return if(comment.isEmpty) {
+        return if(!comment.isPresent) {
             ResponseEntity(HttpStatus.NOT_FOUND)
         } else {
             ResponseEntity.ok(comment.get())
         }
     }
 
-    @PostMapping("posts/{post-id}/comments/new")
+    @PostMapping("/posts/{post-id}/comments/new")
     fun createComment(
         @PathVariable("post-id") postId: Long,
         @RequestBody form: CommentForm
@@ -67,7 +67,7 @@ class CommentController {
         return ResponseEntity.ok(comment.id)
     }
 
-    @PutMapping("comments/{comment-id}/edit")
+    @PutMapping("/comments/{comment-id}/edit")
     fun editComment(
         @PathVariable("comment-id") commentId: Long,
         @RequestBody form: CommentForm
@@ -81,7 +81,7 @@ class CommentController {
         return ResponseEntity(HttpStatus.OK)
     }
 
-    @DeleteMapping("comments/{comment-id}/delete")
+    @DeleteMapping("/comments/{comment-id}/delete")
     fun deleteComment(
         @PathVariable("comment-id") commentId: Long,
         @RequestBody form: UserForm
@@ -96,7 +96,7 @@ class CommentController {
         return ResponseEntity(HttpStatus.OK)
     }
 
-    @GetMapping("posts/{post-id}/comments/count")
+    @GetMapping("/posts/{post-id}/comments/count")
     fun countComments(@PathVariable("post-id") postId: Long) : ResponseEntity<Int> {
         return  ResponseEntity.ok(
             postRepository.countById(postId)

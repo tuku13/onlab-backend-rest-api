@@ -25,12 +25,12 @@ class AuthController {
     @Autowired
     private lateinit var userRepository: UserRepository
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     fun login(
         @RequestBody form: LoginForm
-    ) : ResponseEntity<String> {
+    ) : ResponseEntity<Long> {
         val user = userRepository.getUserByName(form.username)
-        val account = accountRepository.getAccountsByUserId(user.id)
+        val account = accountRepository.getAccountsByUserId(user.get().id)
 
         // TODO itt kel hashelni a jelszót
         val hashedPassword = form.password
@@ -39,7 +39,7 @@ class AuthController {
             return ResponseEntity(HttpStatus.UNAUTHORIZED)
         }
 
-        return ResponseEntity("Your email address is ${account.emailAddress}", HttpStatus.OK)
+        return ResponseEntity(user.get().id, HttpStatus.OK)
     }
 
     @PostMapping("/register")

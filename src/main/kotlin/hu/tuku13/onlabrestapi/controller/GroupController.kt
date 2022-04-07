@@ -26,7 +26,7 @@ class GroupController {
     fun getGroup(@PathVariable id: Long) : ResponseEntity<Group> {
         val group = groupRepository.findById(id)
 
-        return if(group.isEmpty) {
+        return if(!group.isPresent) {
             ResponseEntity(HttpStatus.NOT_FOUND)
         } else {
             ResponseEntity.ok(group.get())
@@ -93,9 +93,4 @@ class GroupController {
 
         return ResponseEntity(group.id, HttpStatus.CREATED)
     }
-
-    // TODO subscribe
-
-    // TODO unsubscribe
-
 }

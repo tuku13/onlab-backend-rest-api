@@ -44,7 +44,7 @@ class LikeController {
     fun getLike(@PathVariable("like-id") likeId: Long): ResponseEntity<Like> {
         val like = likeRepository.findById(likeId)
 
-        return if (like.isEmpty) {
+        return if (!like.isPresent) {
             ResponseEntity(HttpStatus.NOT_FOUND)
         } else {
             ResponseEntity.ok(like.get())
@@ -64,14 +64,14 @@ class LikeController {
     ) : ResponseEntity<Long> {
         val post = postRepository.findById(postId)
 
-        if(post.isEmpty) {
+        if(!post.isPresent) {
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
 
         when (form.value) {
             0 -> {
                 val like = likeRepository.findLikeByPostIdAndUserId(postId, form.userId)
-                return if(like.isEmpty) {
+                return if(!like.isPresent) {
                     ResponseEntity(HttpStatus.NOT_FOUND)
                 } else {
                     likeRepository.delete(like.get())
@@ -106,14 +106,14 @@ class LikeController {
     ) : ResponseEntity<Long> {
         val comment = commentRepository.findById(commentId)
 
-        if(comment.isEmpty) {
+        if(!comment.isPresent) {
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
 
         when (form.value) {
             0 -> {
                 val like = likeRepository.findLikesByCommentIdAndUserId(commentId, form.userId)
-                return if(like.isEmpty) {
+                return if(!like.isPresent) {
                     ResponseEntity(HttpStatus.NOT_FOUND)
                 } else {
                     likeRepository.delete(like.get())
@@ -148,7 +148,7 @@ class LikeController {
     ) : ResponseEntity<Unit> {
         val oldLike = likeRepository.findById(likeId)
 
-        if(oldLike.isEmpty) {
+        if(!oldLike.isPresent) {
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
 
@@ -179,7 +179,7 @@ class LikeController {
     ) : ResponseEntity<Unit> {
         val like = likeRepository.findById(likeId)
 
-        if(like.isEmpty) {
+        if(!like.isPresent) {
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
 

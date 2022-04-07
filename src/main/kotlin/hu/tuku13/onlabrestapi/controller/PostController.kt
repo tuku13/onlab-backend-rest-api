@@ -1,11 +1,10 @@
 package hu.tuku13.onlabrestapi.controller
 
 import hu.tuku13.onlabrestapi.dto.PostForm
+import hu.tuku13.onlabrestapi.dto.PostHeader
 import hu.tuku13.onlabrestapi.dto.UserForm
 import hu.tuku13.onlabrestapi.model.Post
-import hu.tuku13.onlabrestapi.repository.GroupRepository
-import hu.tuku13.onlabrestapi.repository.PostRepository
-import org.apache.tomcat.jni.Time
+import hu.tuku13.onlabrestapi.repository.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -21,9 +20,21 @@ class PostController {
     @Autowired
     private lateinit var postRepository: PostRepository
 
-    @GetMapping("groups/{group-id}/posts")
+    @Autowired
+    private lateinit var subscriptionRepository: SubscriptionRepository
+
+    @Autowired
+    private lateinit var userRepository: UserRepository
+
+    @Autowired
+    private lateinit var commentRepository: CommentRepository
+
+    @Autowired
+    private lateinit var likeRepository: LikeRepository
+
+    @GetMapping("/groups/{group-id}/posts")
     fun getPosts(@PathVariable("group-id") groupId: Long): ResponseEntity<List<Post>> {
-        val posts = postRepository.getPostByGroupId(groupId)
+        val posts = postRepository.getPostsByGroupId(groupId)
 
         return if (posts.isEmpty()) {
             ResponseEntity.ok(emptyList())
@@ -45,6 +56,7 @@ class PostController {
         @RequestBody form: PostForm
     ): ResponseEntity<Long> {
         val text = form.text ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
+        val title = form.title ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
 
         val group = groupRepository.getById(groupId)
 
@@ -52,6 +64,7 @@ class PostController {
             Post(
                 groupId = group.id,
                 timestamp = Instant.now().toEpochMilli(),
+                title = title,
                 text = text,
                 userId = form.userId
             ).apply {
@@ -67,7 +80,7 @@ class PostController {
         @PathVariable("post-id") postId: Long,
         @RequestBody form: PostForm
     ): ResponseEntity<Long> {
-        if (form.text === null && form.imageUrl == null) {
+        if (form.text == null && form.imageUrl == null && form.title == null) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
 
@@ -75,6 +88,7 @@ class PostController {
 
         post.apply {
             form.text?.let { text = it }
+            form.title?.let { title = it }
             form.imageUrl?.let { imageUrl = it }
         }
 
@@ -83,14 +97,14 @@ class PostController {
         return ResponseEntity.ok(post.id)
     }
 
-    @DeleteMapping("posts/{post-id}/delete")
+    @DeleteMapping("/posts/{post-id}/delete")
     fun deletePost(
         @PathVariable("post-id") postId: Long,
-        @RequestBody form : UserForm
-        ): ResponseEntity<Unit> {
+        @RequestBody form: UserForm
+    ): ResponseEntity<Unit> {
         val post = postRepository.getById(postId)
 
-        if(post.userId != form.userId) {
+        if (post.userId != form.userId) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -98,10 +112,103 @@ class PostController {
         return ResponseEntity(HttpStatus.OK)
     }
 
-    @GetMapping("users/{user-id}/posts")
-    fun getUserPosts(@PathVariable("user-id") userId: Long) : ResponseEntity<List<Post>> {
+    @GetMapping("/users/{user-id}/posts")
+    fun getUserPosts(@PathVariable("user-id") userId: Long): ResponseEntity<List<PostHeader>> {
         val posts = postRepository.getPostsByUserId(userId)
-        return ResponseEntity.ok(posts)
+
+        val users = posts
+            .map { it.userId }
+            .toSet()
+            .map { userRepository.getById(it) }
+
+        val groups = posts
+            .map { it.groupId }
+            .toSet()
+            .map { groupRepository.getById(it) }
+
+        val headers = mutableListOf<PostHeader>()
+
+        posts.forEach { post ->
+            val like = likeRepository.findLikeByPostIdAndUserId(post.id, userId)
+
+            val userLike = when {
+                !like.isPresent -> 0
+                like.get().value == 1 -> 1
+                like.get().value == -1 -> -1
+                else -> 0
+            }
+
+            headers += PostHeader(
+                postId = post.id,
+                userOpinion = userLike,
+                userCommented = commentRepository.countByPostIdAndPostedBy(post.id, userId) > 0,
+                comments = commentRepository.countByPostId(post.id),
+                likes = likeRepository.getLikeByPostId(post.id).sumOf { it.value },
+                groupImage = groups.find { it.id == post.groupId }?.groupImageUrl ?: "",
+                groupName = groups.find { it.id == post.groupId }?.name ?: "No Group",
+                postedBy = users.find { it.id == post.userId }?.name ?: "No Name",
+                title = post.title,
+                text = post.text,
+                postImage = post.imageUrl,
+                groupId = groups.find { it.id == post.groupId }?.id ?: 0,
+                userId = users.find { it.id == post.userId }?.id ?: 0,
+                timestamp = post.timestamp
+            )
+        }
+
+        return ResponseEntity.ok(headers)
+    }
+
+    @GetMapping("/posts/subscribed")
+    fun getSubscribedGroupPosts(@RequestParam("user-id") userId: Long): ResponseEntity<List<PostHeader>> {
+        val subscriptions = subscriptionRepository.getSubscriptionByUserId(userId)
+        val posts = mutableListOf<Post>()
+
+        subscriptions.forEach {
+            posts += postRepository.getPostsByGroupId(it.groupId)
+        }
+
+        val users = posts
+            .map { it.userId }
+            .toSet()
+            .map { userRepository.getById(it) }
+
+        val groups = subscriptions
+            .map { it.groupId }
+            .toSet()
+            .map { groupRepository.getById(it) }
+
+        val headers = mutableListOf<PostHeader>()
+
+        posts.forEach { post ->
+            val like = likeRepository.findLikeByPostIdAndUserId(post.id, userId)
+
+            val userLike = when {
+                !like.isPresent -> 0
+                like.get().value == 1 -> 1
+                like.get().value == -1 -> -1
+                else -> 0
+            }
+
+            headers += PostHeader(
+                postId = post.id,
+                userOpinion = userLike,
+                userCommented = commentRepository.countByPostIdAndPostedBy(post.id, userId) > 0,
+                comments = commentRepository.countByPostId(post.id),
+                likes = likeRepository.getLikeByPostId(post.id).sumOf { it.value },
+                groupImage = groups.find { it.id == post.groupId }?.groupImageUrl ?: "",
+                groupName = groups.find { it.id == post.groupId }?.name ?: "No Group",
+                postedBy = users.find { it.id == post.userId }?.name ?: "No Name",
+                title = post.title,
+                text = post.text,
+                postImage = post.imageUrl,
+                groupId = groups.find { it.id == post.groupId }?.id ?: 0,
+                userId = users.find { it.id == post.userId }?.id ?: 0,
+                timestamp = post.timestamp
+            )
+        }
+
+        return ResponseEntity.ok(headers)
     }
 
     //TODO upload picture -> picture url : String
