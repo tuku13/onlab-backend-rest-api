@@ -19,5 +19,4 @@ data class Group(
 
     @Column(name = "created_by_user_id")
     val createdBy: Long = 0L
-
 )

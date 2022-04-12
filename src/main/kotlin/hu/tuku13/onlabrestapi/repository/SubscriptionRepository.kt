@@ -8,4 +8,5 @@ interface SubscriptionRepository : JpaRepository<Subscription, Long> {
 
     fun findSubscriptionByUserIdAndGroupId(userId: Long, groupId: Long): Optional<Subscription>
     fun getSubscriptionByUserId(userId: Long) : List<Subscription>
+    fun countByGroupId(groupId: Long): Int
 }

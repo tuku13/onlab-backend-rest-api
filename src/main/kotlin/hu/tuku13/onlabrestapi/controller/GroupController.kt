@@ -1,8 +1,10 @@
 package hu.tuku13.onlabrestapi.controller
 
+import hu.tuku13.onlabrestapi.dto.GroupDTO
 import hu.tuku13.onlabrestapi.dto.GroupForm
 import hu.tuku13.onlabrestapi.model.Group
 import hu.tuku13.onlabrestapi.repository.GroupRepository
+import hu.tuku13.onlabrestapi.repository.SubscriptionRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -15,11 +17,29 @@ class GroupController {
     @Autowired
     private lateinit var groupRepository: GroupRepository
 
+    @Autowired
+    private lateinit var subscriptionRepository: SubscriptionRepository
+
     @GetMapping("")
-    fun getGroups() : ResponseEntity<List<Group>> {
-        return ResponseEntity.ok(
-            groupRepository.findAll()
-        )
+    fun getGroups() : ResponseEntity<List<GroupDTO>> {
+        val groups = groupRepository.findAll()
+
+        val groupDTOs = mutableListOf<GroupDTO>()
+
+        groups.forEach {
+            val members = subscriptionRepository.countByGroupId(it.id)
+
+            groupDTOs += GroupDTO(
+                id = it.id,
+                name = it.name,
+                description = it.description,
+                groupImageUrl = it.groupImageUrl,
+                createdBy = it.createdBy,
+                members = members
+            )
+        }
+
+        return ResponseEntity.ok(groupDTOs)
     }
 
     @GetMapping("/{id}")
@@ -92,5 +112,29 @@ class GroupController {
         )
 
         return ResponseEntity(group.id, HttpStatus.CREATED)
+    }
+
+    @GetMapping("/search")
+    fun getGroupByName(
+        @RequestParam query: String
+    ): ResponseEntity<List<GroupDTO>> {
+        val groups = groupRepository.findAll().filter { it.name.contains(query, true) }
+
+        val groupDTOs = mutableListOf<GroupDTO>()
+
+        groups.forEach {
+            val members = subscriptionRepository.countByGroupId(it.id)
+
+            groupDTOs += GroupDTO(
+                id = it.id,
+                name = it.name,
+                description = it.description,
+                groupImageUrl = it.groupImageUrl,
+                createdBy = it.createdBy,
+                members = members
+            )
+        }
+
+        return ResponseEntity.ok(groupDTOs)
     }
 }
