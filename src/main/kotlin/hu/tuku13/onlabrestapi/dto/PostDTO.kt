@@ -1,6 +1,6 @@
 package hu.tuku13.onlabrestapi.dto
 
-data class PostHeader(
+data class PostDTO(
     val postId: Long,
     val comments: Int,
     val likes: Int,
@@ -8,7 +8,6 @@ data class PostHeader(
     val userCommented: Boolean = false,
     val groupImage: String,
     val groupName: String,
-    val postedBy: String,
     val title: String,
     val text: String,
     val postImage: String,

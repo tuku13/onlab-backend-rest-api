@@ -43,15 +43,27 @@ class GroupController {
     }
 
     @GetMapping("/{id}")
-    fun getGroup(@PathVariable id: Long) : ResponseEntity<Group> {
+    fun getGroup(@PathVariable id: Long) : ResponseEntity<GroupDTO> {
         val group = groupRepository.findById(id)
 
-        return if(!group.isPresent) {
-            ResponseEntity(HttpStatus.NOT_FOUND)
-        } else {
-            ResponseEntity.ok(group.get())
+        if(!group.isPresent) {
+            return ResponseEntity(HttpStatus.NOT_FOUND)
         }
 
+        val members = subscriptionRepository.countByGroupId(group.get().id)
+
+        val groupDTO = group.get().let {
+            GroupDTO(
+                id = it.id,
+                name = it.name,
+                description = it.description,
+                groupImageUrl = it.groupImageUrl,
+                createdBy = it.createdBy,
+                members = members
+            )
+        }
+
+        return ResponseEntity.ok(groupDTO)
     }
 
     @PutMapping("/{id}")

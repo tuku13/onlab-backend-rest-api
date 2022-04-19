@@ -1,7 +1,7 @@
 package hu.tuku13.onlabrestapi.controller
 
 import hu.tuku13.onlabrestapi.dto.PostForm
-import hu.tuku13.onlabrestapi.dto.PostHeader
+import hu.tuku13.onlabrestapi.dto.PostDTO
 import hu.tuku13.onlabrestapi.dto.UserForm
 import hu.tuku13.onlabrestapi.model.Post
 import hu.tuku13.onlabrestapi.repository.*
@@ -33,20 +33,16 @@ class PostController {
     private lateinit var likeRepository: LikeRepository
 
     @GetMapping("/groups/{group-id}/posts")
-    fun getPosts(@PathVariable("group-id") groupId: Long): ResponseEntity<List<Post>> {
+    fun getPosts(@PathVariable("group-id") groupId: Long): ResponseEntity<List<PostDTO>> {
         val posts = postRepository.getPostsByGroupId(groupId)
-
-        return if (posts.isEmpty()) {
-            ResponseEntity.ok(emptyList())
-        } else {
-            ResponseEntity.ok(posts)
-        }
+        val postDTOs = convertPostListToDTO(posts)
+        return ResponseEntity.ok(postDTOs)
     }
 
     @GetMapping("/posts/{post-id}")
-    fun getPost(@PathVariable("post-id") postId: Long): ResponseEntity<Post> {
+    fun getPost(@PathVariable("post-id") postId: Long): ResponseEntity<PostDTO> {
         postRepository.getById(postId).let {
-            return ResponseEntity.ok(it)
+            return ResponseEntity.ok(convertPostToDTO(it))
         }
     }
 
@@ -113,7 +109,7 @@ class PostController {
     }
 
     @GetMapping("/users/{user-id}/posts")
-    fun getUserPosts(@PathVariable("user-id") userId: Long): ResponseEntity<List<PostHeader>> {
+    fun getUserPosts(@PathVariable("user-id") userId: Long): ResponseEntity<List<PostDTO>> {
         val posts = postRepository.getPostsByUserId(userId)
 
         val users = posts
@@ -126,7 +122,7 @@ class PostController {
             .toSet()
             .map { groupRepository.getById(it) }
 
-        val headers = mutableListOf<PostHeader>()
+        val headers = mutableListOf<PostDTO>()
 
         posts.forEach { post ->
             val like = likeRepository.findLikeByPostIdAndUserId(post.id, userId)
@@ -138,7 +134,7 @@ class PostController {
                 else -> 0
             }
 
-            headers += PostHeader(
+            headers += PostDTO(
                 postId = post.id,
                 userOpinion = userLike,
                 userCommented = commentRepository.countByPostIdAndPostedBy(post.id, userId) > 0,
@@ -146,7 +142,6 @@ class PostController {
                 likes = likeRepository.getLikeByPostId(post.id).sumOf { it.value },
                 groupImage = groups.find { it.id == post.groupId }?.groupImageUrl ?: "",
                 groupName = groups.find { it.id == post.groupId }?.name ?: "No Group",
-                postedBy = users.find { it.id == post.userId }?.name ?: "No Name",
                 title = post.title,
                 text = post.text,
                 postImage = post.imageUrl,
@@ -160,28 +155,33 @@ class PostController {
     }
 
     @GetMapping("/posts/subscribed")
-    fun getSubscribedGroupPosts(@RequestParam("user-id") userId: Long): ResponseEntity<List<PostHeader>> {
+    fun getSubscribedGroupPosts(@RequestParam("user-id") userId: Long): ResponseEntity<List<PostDTO>> {
         val subscriptions = subscriptionRepository.getSubscriptionByUserId(userId)
         val posts = mutableListOf<Post>()
-
         subscriptions.forEach {
             posts += postRepository.getPostsByGroupId(it.groupId)
         }
 
+        val postDTOs = convertPostListToDTO(posts)
+
+        return ResponseEntity.ok(postDTOs)
+    }
+
+    private fun convertPostListToDTO(posts: List<Post>): List<PostDTO> {
         val users = posts
             .map { it.userId }
             .toSet()
             .map { userRepository.getById(it) }
 
-        val groups = subscriptions
+        val groups = posts
             .map { it.groupId }
             .toSet()
             .map { groupRepository.getById(it) }
 
-        val headers = mutableListOf<PostHeader>()
+        val postDTOS = mutableListOf<PostDTO>()
 
         posts.forEach { post ->
-            val like = likeRepository.findLikeByPostIdAndUserId(post.id, userId)
+            val like = likeRepository.findLikeByPostIdAndUserId(post.id, post.userId)
 
             val userLike = when {
                 !like.isPresent -> 0
@@ -190,15 +190,14 @@ class PostController {
                 else -> 0
             }
 
-            headers += PostHeader(
+            postDTOS += PostDTO(
                 postId = post.id,
                 userOpinion = userLike,
-                userCommented = commentRepository.countByPostIdAndPostedBy(post.id, userId) > 0,
+                userCommented = commentRepository.countByPostIdAndPostedBy(post.id, post.userId) > 0,
                 comments = commentRepository.countByPostId(post.id),
                 likes = likeRepository.getLikeByPostId(post.id).sumOf { it.value },
                 groupImage = groups.find { it.id == post.groupId }?.groupImageUrl ?: "",
                 groupName = groups.find { it.id == post.groupId }?.name ?: "No Group",
-                postedBy = users.find { it.id == post.userId }?.name ?: "No Name",
                 title = post.title,
                 text = post.text,
                 postImage = post.imageUrl,
@@ -208,7 +207,35 @@ class PostController {
             )
         }
 
-        return ResponseEntity.ok(headers)
+        return postDTOS
+    }
+
+    private fun convertPostToDTO(post: Post): PostDTO {
+        val group = groupRepository.getById(post.userId)
+
+        val like = likeRepository.findLikeByPostIdAndUserId(post.id, post.userId)
+        val userLike = when {
+            !like.isPresent -> 0
+            like.get().value == 1 -> 1
+            like.get().value == -1 -> -1
+            else -> 0
+        }
+
+        return PostDTO(
+            postId = post.id,
+            userOpinion = userLike,
+            userCommented = commentRepository.countByPostIdAndPostedBy(post.id, post.userId) > 0,
+            comments = commentRepository.countByPostId(post.id),
+            likes = likeRepository.getLikeByPostId(post.id).sumOf { it.value },
+            groupImage = group.groupImageUrl,
+            groupName = group.name,
+            title = post.title,
+            text = post.text,
+            postImage = post.imageUrl,
+            groupId = post.groupId,
+            userId = post.userId,
+            timestamp = post.timestamp
+        )
     }
 
     //TODO upload picture -> picture url : String
