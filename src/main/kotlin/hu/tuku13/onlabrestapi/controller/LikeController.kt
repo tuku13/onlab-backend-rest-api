@@ -61,39 +61,50 @@ class LikeController {
     fun createLikeOnPost(
         @PathVariable("post-id") postId: Long,
         @RequestBody form: LikeForm
-    ) : ResponseEntity<Long> {
+    ) : ResponseEntity<Unit> {
         val post = postRepository.findById(postId)
 
         if(!post.isPresent) {
-            return ResponseEntity(HttpStatus.NOT_FOUND)
+            println("Post not found")
+            return ResponseEntity(HttpStatus.OK)
         }
 
         when (form.value) {
             0 -> {
-                val like = likeRepository.findLikeByPostIdAndUserId(postId, form.userId)
-                return if(!like.isPresent) {
-                    ResponseEntity(HttpStatus.NOT_FOUND)
-                } else {
-                    likeRepository.delete(like.get())
+                val like = likeRepository.getLikeByPostIdAndUserId(postId, form.userId)
+                return if(like == null) {
+                    println("Like not found")
                     ResponseEntity(HttpStatus.OK)
+                } else {
+                    like.value = 0
+                    likeRepository.save(like)
+                    println("Like changed to 0")
+                    return ResponseEntity(HttpStatus.OK)
                 }
             }
             -1, 1 -> {
-                val oldLike = likeRepository.findLikeByPostIdAndUserId(postId, form.userId)
-                if(oldLike.isPresent) {
-                    return ResponseEntity(HttpStatus.CONFLICT)
-                }
+                val like = likeRepository.getLikeByPostIdAndUserId(postId, form.userId)
 
-                val like = likeRepository.save(
-                    Like(
-                        value = form.value,
-                        postId = postId,
-                        userId = form.userId,
+                return if(like != null) {
+                    like.value = if (form.value == 1) 1 else -1
+                    val savedLike = likeRepository.save(like)
+
+                    println("Like changed to ${like.value}")
+                    return ResponseEntity(HttpStatus.OK)
+                } else {
+                    val newLike = likeRepository.save(
+                        Like(
+                            value = form.value,
+                            postId = postId,
+                            userId = form.userId,
+                        )
                     )
-                )
-                return ResponseEntity.ok(like.id)
+                    println("New like, value = ${newLike.value}")
+                    return ResponseEntity(HttpStatus.OK)
+                }
             }
             else -> {
+                println("Bad request")
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
         }

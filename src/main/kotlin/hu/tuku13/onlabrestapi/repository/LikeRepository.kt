@@ -12,5 +12,7 @@ interface LikeRepository : JpaRepository<Like, Long> {
 
     fun findLikeByPostIdAndUserId(postId: Long, userId: Long): Optional<Like>
 
+    fun getLikeByPostIdAndUserId(postId: Long, userId: Long): Like?
+
     fun findLikesByCommentIdAndUserId(commentId: Long, userId: Long) : Optional<Like>
 }

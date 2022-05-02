@@ -51,8 +51,8 @@ class PostController {
         @PathVariable("group-id") groupId: Long,
         @RequestBody form: PostForm
     ): ResponseEntity<Long> {
-        val text = form.text ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
         val title = form.title ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
+        val text = form.text ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
 
         val group = groupRepository.getById(groupId)
 
