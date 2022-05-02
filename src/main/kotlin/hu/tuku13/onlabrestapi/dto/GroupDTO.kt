@@ -7,6 +7,6 @@ data class GroupDTO(
     val description: String,
     val groupImageUrl: String ,
     val createdBy: Long,
-    val members: Int,
+    val members: Int
 )
 
