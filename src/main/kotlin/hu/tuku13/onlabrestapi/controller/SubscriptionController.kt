@@ -23,9 +23,9 @@ class SubscriptionController {
     @GetMapping("/groups/{group-id}/subscription")
     fun isUserAlreadySubscribed(
         @PathVariable("group-id") groupId: Long,
-        @RequestBody form: UserForm
+        @RequestParam userId: Long
     ): ResponseEntity<Boolean> {
-        val subscription = subscriptionRepository.findSubscriptionByUserIdAndGroupId(form.userId, groupId)
+        val subscription = subscriptionRepository.findSubscriptionByUserIdAndGroupId(userId, groupId)
 
         return if(!subscription.isPresent) {
             ResponseEntity.ok(false)

@@ -96,11 +96,11 @@ class PostController {
     @DeleteMapping("/posts/{post-id}/delete")
     fun deletePost(
         @PathVariable("post-id") postId: Long,
-        @RequestBody form: UserForm
+        @RequestParam userId: Long
     ): ResponseEntity<Unit> {
         val post = postRepository.getById(postId)
 
-        if (post.userId != form.userId) {
+        if (post.userId != userId) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
