@@ -13,11 +13,11 @@ class FileController {
 
     @PostMapping("/images/upload")
     fun uploadFile(@RequestParam("file") multipartFile: MultipartFile): ResponseEntity<String> {
-        val fileName = "/static/images/${UUID.randomUUID()}.png"
+        val fileName = "images/${UUID.randomUUID()}.png"
 
-        val file = File(".${fileName}")
+        val file = File("./static/${fileName}")
         file.writeBytes(multipartFile.bytes)
 
-        return ResponseEntity.ok("localhost:8080${fileName}")
+        return ResponseEntity.ok(fileName)
     }
 }

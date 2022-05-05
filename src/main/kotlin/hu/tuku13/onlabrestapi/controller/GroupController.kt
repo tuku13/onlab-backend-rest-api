@@ -96,6 +96,12 @@ class GroupController {
             }
         }
 
+        if(form.imageUrl != null) {
+            group.apply {
+                groupImageUrl = form.imageUrl
+            }
+        }
+
         groupRepository.save(group)
         return ResponseEntity(HttpStatus.OK)
     }
@@ -119,7 +125,8 @@ class GroupController {
             Group(
                 name = form.groupName,
                 description = form.description,
-                createdBy = form.userId
+                createdBy = form.userId,
+                groupImageUrl = form.imageUrl ?: ""
             )
         )
 
