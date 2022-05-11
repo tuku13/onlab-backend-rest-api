@@ -70,9 +70,10 @@ class GroupController {
     fun editGroup(
         @PathVariable id: Long,
         @RequestBody form : GroupForm
-    ) : ResponseEntity<String> {
-
-        if(form.groupName == null && form.description == null) {
+    ) : ResponseEntity<Unit> {
+        println("form: $form")
+        // TODO reponsetype String-rol Unit-ra valtozott, majd tesztelni kell
+        if(form.groupName == null && form.description == null && form.imageUrl == null) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
 
