@@ -72,7 +72,6 @@ class GroupController {
         @RequestBody form : GroupForm
     ) : ResponseEntity<Unit> {
         println("form: $form")
-        // TODO reponsetype String-rol Unit-ra valtozott, majd tesztelni kell
         if(form.groupName == null && form.description == null && form.imageUrl == null) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
