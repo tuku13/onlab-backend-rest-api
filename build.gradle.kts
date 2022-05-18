@@ -25,10 +25,11 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-//    implementation("org.springframework.boot:spring-boot-starter-security")
-//    implementation("org.springframework.security:spring-security-oauth2-resource-server")
-//    implementation("org.springframework.security:spring-security-oauth2-jose")
-//    implementation("org.springframework.security:spring-security-config")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework:spring-jdbc")
+
+    implementation("io.jsonwebtoken:jjwt:0.9.1")
+    implementation("javax.xml.bind:jaxb-api:2.3.1")
 }
 
 tasks.withType<KotlinCompile> {
@@ -37,13 +38,6 @@ tasks.withType<KotlinCompile> {
         jvmTarget = "11"
     }
 }
-
-//tasks.withType<Jar> {
-//    manifest {
-//        attributes["Start-Class"] = "hu.tuku13.onlabrestapi.OnlabRestApiApplicationKt"
-//        attributes["Main-Class"] = "org.springframework.boot.loader.JarLauncher"
-//    }
-//}
 
 tasks.withType<Test> {
     useJUnitPlatform()
