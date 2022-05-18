@@ -2,14 +2,19 @@ package hu.tuku13.onlabrestapi.controller
 
 import hu.tuku13.onlabrestapi.dto.PostForm
 import hu.tuku13.onlabrestapi.dto.PostDTO
-import hu.tuku13.onlabrestapi.dto.UserForm
 import hu.tuku13.onlabrestapi.model.Post
 import hu.tuku13.onlabrestapi.repository.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
+import java.security.Principal
 import java.time.Instant
+import javax.security.auth.Subject
 
 @RestController
 class PostController {
@@ -51,6 +56,8 @@ class PostController {
         @PathVariable("group-id") groupId: Long,
         @RequestBody form: PostForm
     ): ResponseEntity<Long> {
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+
         val title = form.title ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
         val text = form.text ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
 
@@ -62,7 +69,7 @@ class PostController {
                 timestamp = Instant.now().toEpochMilli(),
                 title = title,
                 text = text,
-                userId = form.userId
+                userId = userId
             ).apply {
                 form.imageUrl?.let { this.imageUrl = it }
             }

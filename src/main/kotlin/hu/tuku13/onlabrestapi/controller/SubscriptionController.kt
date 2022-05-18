@@ -1,11 +1,11 @@
 package hu.tuku13.onlabrestapi.controller
 
-import hu.tuku13.onlabrestapi.dto.UserForm
 import hu.tuku13.onlabrestapi.model.Subscription
 import hu.tuku13.onlabrestapi.repository.SubscriptionRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -37,15 +37,15 @@ class SubscriptionController {
     @PostMapping("/groups/{group-id}/subscribe")
     fun subscribe(
         @PathVariable("group-id") groupId: Long,
-        @RequestBody form: UserForm
     ): ResponseEntity<Unit> {
-        val subscription = subscriptionRepository.findSubscriptionByUserIdAndGroupId(form.userId, groupId)
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+        val subscription = subscriptionRepository.findSubscriptionByUserIdAndGroupId(userId, groupId)
 
         if (!subscription.isPresent) {
             subscriptionRepository.save(
                 Subscription(
                     groupId = groupId,
-                    userId = form.userId
+                    userId = userId
                 )
             )
         }
@@ -55,9 +55,9 @@ class SubscriptionController {
     @PostMapping("/groups/{group-id}/unsubscribe")
     fun unsubscribe(
         @PathVariable("group-id") groupId: Long,
-        @RequestBody form: UserForm
     ): ResponseEntity<Unit> {
-        val subscription = subscriptionRepository.findSubscriptionByUserIdAndGroupId(form.userId, groupId)
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+        val subscription = subscriptionRepository.findSubscriptionByUserIdAndGroupId(userId, groupId)
 
         if (subscription.isPresent) {
             subscriptionRepository.delete(subscription.get())

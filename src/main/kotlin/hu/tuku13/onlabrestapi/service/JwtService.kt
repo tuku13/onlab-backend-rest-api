@@ -12,7 +12,7 @@ class JwtService {
 
     fun extractUsername(token: String): String = extractAllClaim(token).subject
 
-    fun extractUserId(token: String) = extractAllClaim(token)["user-id"] as? Long
+    fun extractUserId(token: String) = extractAllClaim(token).get("user-id", Integer::class.java)
 
     private fun extractExpiration(token: String) = extractAllClaim(token).expiration
 
@@ -26,9 +26,18 @@ class JwtService {
         .signWith(SignatureAlgorithm.HS256, SecretKey)
         .compact()
 
-    fun validateToken(token: String, username: String, userId: Long) = !isTokenExpired(token)
-            && extractUserId(token) == userId
-            && extractUsername(token) == username
+    fun validateToken(token: String, username: String, userId: Long): Boolean {
+        println("id: ${extractUserId(token)}")
+
+        val isNotExpired = !isTokenExpired(token)
+        val isIDValid = extractUserId(token).toLong() == userId
+        val isUsernameValid = extractUsername(token) == username
+
+        val isTokenValid = isNotExpired && isIDValid && isUsernameValid
+        println("$isNotExpired && $isIDValid && $isUsernameValid = $isTokenValid")
+
+        return isTokenValid
+    }
 
     private fun isTokenExpired(token: String) = extractExpiration(token).before(Date())
 

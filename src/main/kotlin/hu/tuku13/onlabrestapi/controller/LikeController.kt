@@ -1,7 +1,6 @@
 package hu.tuku13.onlabrestapi.controller
 
 import hu.tuku13.onlabrestapi.dto.LikeForm
-import hu.tuku13.onlabrestapi.dto.UserForm
 import hu.tuku13.onlabrestapi.model.Like
 import hu.tuku13.onlabrestapi.repository.CommentRepository
 import hu.tuku13.onlabrestapi.repository.LikeRepository
@@ -9,6 +8,7 @@ import hu.tuku13.onlabrestapi.repository.PostRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -62,6 +62,7 @@ class LikeController {
         @PathVariable("post-id") postId: Long,
         @RequestBody form: LikeForm
     ) : ResponseEntity<Unit> {
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
         val post = postRepository.findById(postId)
 
         if(!post.isPresent) {
@@ -71,7 +72,7 @@ class LikeController {
 
         when (form.value) {
             0 -> {
-                val like = likeRepository.getLikeByPostIdAndUserId(postId, form.userId)
+                val like = likeRepository.getLikeByPostIdAndUserId(postId, userId)
                 return if(like == null) {
                     println("Like not found")
                     ResponseEntity(HttpStatus.OK)
@@ -83,7 +84,7 @@ class LikeController {
                 }
             }
             -1, 1 -> {
-                val like = likeRepository.getLikeByPostIdAndUserId(postId, form.userId)
+                val like = likeRepository.getLikeByPostIdAndUserId(postId, userId)
 
                 return if(like != null) {
                     like.value = if (form.value == 1) 1 else -1
@@ -96,7 +97,7 @@ class LikeController {
                         Like(
                             value = form.value,
                             postId = postId,
-                            userId = form.userId,
+                            userId = userId,
                         )
                     )
                     println("New like, value = ${newLike.value}")
@@ -115,6 +116,7 @@ class LikeController {
         @PathVariable("comment-id") commentId: Long,
         @RequestBody form: LikeForm
     ) : ResponseEntity<Long> {
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
         val comment = commentRepository.findById(commentId)
 
         if(!comment.isPresent) {
@@ -123,7 +125,7 @@ class LikeController {
 
         when (form.value) {
             0 -> {
-                val like = likeRepository.findLikesByCommentIdAndUserId(commentId, form.userId)
+                val like = likeRepository.findLikesByCommentIdAndUserId(commentId, userId)
                 return if(!like.isPresent) {
                     ResponseEntity(HttpStatus.NOT_FOUND)
                 } else {
@@ -132,7 +134,7 @@ class LikeController {
                 }
             }
             -1, 1 -> {
-                val oldLike = likeRepository.findLikesByCommentIdAndUserId(commentId, form.userId)
+                val oldLike = likeRepository.findLikesByCommentIdAndUserId(commentId, userId)
                 if(oldLike.isPresent) {
                     return ResponseEntity(HttpStatus.CONFLICT)
                 }
@@ -141,7 +143,7 @@ class LikeController {
                     Like(
                         value = form.value,
                         commentId = commentId,
-                        userId = form.userId,
+                        userId = userId,
                     )
                 )
                 return ResponseEntity.ok(like.id)
@@ -186,8 +188,8 @@ class LikeController {
     @DeleteMapping("/likes/{like-id}/delete")
     fun deleteLike(
         @PathVariable("like-id") likeId: Long,
-        @RequestBody form: UserForm
     ) : ResponseEntity<Unit> {
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
         val like = likeRepository.findById(likeId)
 
         if(!like.isPresent) {
@@ -195,7 +197,7 @@ class LikeController {
         }
 
         like.get().let {
-            if(it.userId != form.userId) {
+            if(it.userId != userId) {
                 return ResponseEntity(HttpStatus.FORBIDDEN)
             }
             likeRepository.deleteById(likeId)

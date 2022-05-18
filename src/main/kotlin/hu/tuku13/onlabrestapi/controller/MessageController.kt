@@ -12,6 +12,7 @@ import hu.tuku13.onlabrestapi.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -30,8 +31,9 @@ class MessageController {
     fun sendMessage(
         @RequestBody form: MessageForm
     ): ResponseEntity<Long> {
+        val senderId = SecurityContextHolder.getContext().authentication.principal as Long
         val recipient = userRepository.getUserByName(form.recipientName)
-        val sender = userRepository.findById(form.senderId)
+        val sender = userRepository.findById(senderId)
 
         if (!recipient.isPresent || !sender.isPresent) {
             return ResponseEntity(HttpStatus.NOT_FOUND)

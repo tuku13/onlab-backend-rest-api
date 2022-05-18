@@ -1,13 +1,13 @@
 package hu.tuku13.onlabrestapi.controller
 
 import hu.tuku13.onlabrestapi.dto.CommentForm
-import hu.tuku13.onlabrestapi.dto.UserForm
 import hu.tuku13.onlabrestapi.model.Comment
 import hu.tuku13.onlabrestapi.repository.CommentRepository
 import hu.tuku13.onlabrestapi.repository.PostRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import java.time.Instant
 
@@ -48,6 +48,7 @@ class CommentController {
         @PathVariable("post-id") postId: Long,
         @RequestBody form: CommentForm
     ): ResponseEntity<Long> {
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
         val postExist = postRepository.existsById(postId)
 
         if (!postExist) {
@@ -59,7 +60,7 @@ class CommentController {
                 text = form.text,
                 timestamp = Instant.now().toEpochMilli(),
                 parentCommentId = form.parentCommentId,
-                postedBy = form.userId,
+                postedBy = userId,
                 postId = postId
             )
         )
@@ -84,11 +85,11 @@ class CommentController {
     @DeleteMapping("/comments/{comment-id}/delete")
     fun deleteComment(
         @PathVariable("comment-id") commentId: Long,
-        @RequestBody form: UserForm
     ) : ResponseEntity<Unit> {
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
         val comment = commentRepository.getById(commentId)
 
-        if(comment.postedBy != form.userId) {
+        if(comment.postedBy != userId) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 

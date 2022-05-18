@@ -18,8 +18,8 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
     @Autowired
     private lateinit var dataSource: DataSource
 
-//    @Autowired
-//    private lateinit var jwtRequestFilter: JwtRequestFilter
+    @Autowired
+    private lateinit var jwtRequestFilter: JwtRequestFilter
 
     override fun configure(auth: AuthenticationManagerBuilder?) {
         auth?.jdbcAuthentication()
@@ -41,10 +41,10 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
             .mvcMatchers("/login").permitAll()
             .mvcMatchers("/register").permitAll()
             .anyRequest().authenticated()
-//            .and().sessionManagement()
-//            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and().sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
-//        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter::class.java)
+        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter::class.java)
     }
 
     @Bean

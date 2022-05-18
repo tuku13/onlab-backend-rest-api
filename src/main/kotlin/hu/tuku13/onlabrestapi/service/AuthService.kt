@@ -29,14 +29,12 @@ class AuthService {
     private val authenticatedUsers = mutableMapOf<String, Long>()
 
     fun login(username: String, password: String): Token? {
-        println("login -----------")
         try {
-            println("nnnnnnnnnnnnnn")
             authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken(username, password)
             )
         } catch (e: BadCredentialsException) {
-            println("asdasdasdasdasd")
+            println(e)
             throw Exception("Incorrect username or password", e)
         }
 

@@ -8,6 +8,7 @@ import hu.tuku13.onlabrestapi.repository.SubscriptionRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -71,12 +72,16 @@ class GroupController {
         @PathVariable id: Long,
         @RequestBody form : GroupForm
     ) : ResponseEntity<Unit> {
-        println("form: $form")
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+
         if(form.groupName == null && form.description == null && form.imageUrl == null) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
 
         val group = groupRepository.getById(id)
+        if (group.createdBy != userId) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
 
         if(form.groupName != null) {
             val isNameAlreadyUsed = groupRepository.existsByName(form.groupName)
@@ -110,6 +115,7 @@ class GroupController {
     fun createGroup(
         @RequestBody form: GroupForm
     ) : ResponseEntity<Long> {
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
 
         if(form.groupName == null || form.description == null) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
@@ -125,7 +131,7 @@ class GroupController {
             Group(
                 name = form.groupName,
                 description = form.description,
-                createdBy = form.userId,
+                createdBy = userId,
                 groupImageUrl = form.imageUrl ?: ""
             )
         )
