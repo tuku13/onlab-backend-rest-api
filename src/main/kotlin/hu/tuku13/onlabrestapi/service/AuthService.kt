@@ -2,8 +2,10 @@ package hu.tuku13.onlabrestapi.service
 
 import hu.tuku13.onlabrestapi.dto.Token
 import hu.tuku13.onlabrestapi.model.Account
+import hu.tuku13.onlabrestapi.model.Authority
 import hu.tuku13.onlabrestapi.model.User
 import hu.tuku13.onlabrestapi.repository.AccountRepository
+import hu.tuku13.onlabrestapi.repository.AuthorityRepository
 import hu.tuku13.onlabrestapi.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.AuthenticationManager
@@ -26,6 +28,9 @@ class AuthService {
     @Autowired
     private lateinit var jwtService: JwtService
 
+    @Autowired
+    private lateinit var authorityRepository: AuthorityRepository
+
     private val authenticatedUsers = mutableMapOf<String, Long>()
 
     fun login(username: String, password: String): Token? {
@@ -41,8 +46,6 @@ class AuthService {
         val user = userRepository.getUserByName(username)
         val token = jwtService.createToken(user.get().name, user.get().id)
 
-        println(token)
-
         return Token(
             token = token,
             userId = user.get().id
@@ -57,14 +60,16 @@ class AuthService {
                 )
             )
 
-            // TODO uj sql tablaba is kell szurni adatokat
-
             accountRepository.save(
                 Account(
                     emailAddress = email,
                     userId = user.id,
                     hashedPassword = password
                 )
+            )
+
+            authorityRepository.save(
+                Authority(username = username, authority = "USER")
             )
 
             true

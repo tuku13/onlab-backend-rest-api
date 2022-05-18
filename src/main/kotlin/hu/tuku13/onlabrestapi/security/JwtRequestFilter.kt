@@ -32,7 +32,7 @@ class JwtRequestFilter : OncePerRequestFilter() {
             return
         }
 
-        val jwt = authorizationHeader.substring(7).also { println(it) }
+        val jwt = authorizationHeader.substring(7)
         val username = jwtService.extractUsername(jwt)
         val user = userRepository.getUserByName(username).get()
 

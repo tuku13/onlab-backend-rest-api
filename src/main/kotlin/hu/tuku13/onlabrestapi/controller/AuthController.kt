@@ -6,6 +6,8 @@ import hu.tuku13.onlabrestapi.Constants.MIN_USERNAME_LENGTH
 import hu.tuku13.onlabrestapi.dto.LoginForm
 import hu.tuku13.onlabrestapi.dto.RegistrationForm
 import hu.tuku13.onlabrestapi.dto.Token
+import hu.tuku13.onlabrestapi.model.Authority
+import hu.tuku13.onlabrestapi.repository.AuthorityRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 class AuthController {
     @Autowired
     private lateinit var authService: AuthService
+
 
     @PostMapping("/login")
     fun login(

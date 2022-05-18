@@ -27,14 +27,12 @@ class JwtService {
         .compact()
 
     fun validateToken(token: String, username: String, userId: Long): Boolean {
-        println("id: ${extractUserId(token)}")
 
         val isNotExpired = !isTokenExpired(token)
         val isIDValid = extractUserId(token).toLong() == userId
         val isUsernameValid = extractUsername(token) == username
 
         val isTokenValid = isNotExpired && isIDValid && isUsernameValid
-        println("$isNotExpired && $isIDValid && $isUsernameValid = $isTokenValid")
 
         return isTokenValid
     }

@@ -245,5 +245,4 @@ class PostController {
         )
     }
 
-    //TODO upload picture -> picture url : String
 }
