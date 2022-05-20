@@ -36,15 +36,12 @@ class JwtRequestFilter : OncePerRequestFilter() {
         val username = jwtService.extractUsername(jwt)
         val user = userRepository.getUserByName(username).get()
 
-        val valid = jwtService.validateToken(jwt, user.name, user.id)
-
-        if(!valid) {
+        if (!jwtService.validateToken(jwt, user.name, user.id)) {
             filterChain.doFilter(request, response)
             return
         }
 
         val principal = user.id
-
         val authentication = UsernamePasswordAuthenticationToken(principal, null, emptyList())
 
         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
